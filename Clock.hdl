@@ -1,0 +1,30 @@
+CHIP Clock {
+    IN period[16], reset;
+    OUT ticks[16], loop;
+
+    PARTS:
+    Inc16(in=current, out=next);
+    
+    Not16(in=period, out=invPeriod);
+    Add16(a=invPeriod, b=next, out=sum);
+    Not16(in=sum, out=diff, out[15]=isNeg);
+    
+    Or16Way(in=diff, out=nonZero);
+    
+    Not(in=isNeg, out=isPos);
+    Not(in=reset, out=noReset);
+    
+    And(a=nonZero, b=isPos, out=keepCounting);
+    And(a=keepCounting, b=noReset, out=useNextValue);
+    
+    And16(a[0]=useNextValue, a[1]=useNextValue, a[2]=useNextValue, a[3]=useNextValue, 
+          a[4]=useNextValue, a[5]=useNextValue, a[6]=useNextValue, a[7]=useNextValue,
+          a[8]=useNextValue, a[9]=useNextValue, a[10]=useNextValue, a[11]=useNextValue,
+          a[12]=useNextValue, a[13]=useNextValue, a[14]=useNextValue, a[15]=useNextValue, 
+          b=next, out=selectedValue);
+    
+    Register(in=selectedValue, load=true, out=current, out=ticks);
+    
+    Or16Way(in=current, out=hasValue);
+    Not(in=hasValue, out=loop);
+}
