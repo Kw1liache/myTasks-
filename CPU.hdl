@@ -1,0 +1,46 @@
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+	PARTS:
+	// Определение типа инструкции
+    Not(in=instruction[15], out=isAInstruction);   
+    // Управление записью в память (dest M)
+    And(a=instruction[15], b=instruction[3], out=writeM);
+    // Выбор значения для регистра A
+    Mux16(a=instruction, b=aluOut, sel=instruction[15], out=aInput);  
+    // Управление загрузкой регистров
+    Or(a=isAInstruction, b=instruction[5], out=loadA);  // dest A
+    And(a=instruction[15], b=instruction[4], out=loadD); // dest D   
+    // Регистры данных
+    ARegister(in=aInput, load=loadA, out=aReg, out[0..14]=addressM);
+    DRegister(in=aluOut, load=loadD, out=dReg);    
+    // Выбор второго операнда для ALU (A или M)
+    Mux16(a=aReg, b=inM, sel=instruction[12], out=aluY);    
+    // Арифметико-логическое устройство
+    ALU(x=dReg, y=aluY, zx=instruction[11], nx=instruction[10], zy=instruction[9], 
+        ny=instruction[8], f=instruction[7], no=instruction[6], out=aluOut, 
+        out=outM, zr=zr, ng=ng);    
+    // Логика условных переходов
+    And(a=ng, b=instruction[2], out=jlt);  // JLT
+    And(a=zr, b=instruction[1], out=jeq);  // JEQ
+    Not(in=zr, out=notZ);
+    Not(in=ng, out=notN);
+    And(a=notZ, b=notN, out=pos);
+    And(a=pos, b=instruction[0], out=jgt); // JGT  
+    // Формирование сигнала jump
+    Or(a=jlt, b=jeq, out=jumpTemp);
+    Or(a=jumpTemp, b=jgt, out=shouldJump);
+    And(a=instruction[15], b=shouldJump, out=jump);   
+    // Счетчик команд
+    PC(in=aReg, load=jump, inc=true, reset=reset, out[0..14]=pc);
+}
