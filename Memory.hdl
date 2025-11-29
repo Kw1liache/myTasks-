@@ -1,0 +1,16 @@
+CHIP Memory {
+    IN in[16], load, address[15];
+    OUT out[16];
+
+    PARTS:
+    // Разделяем сигнал load по областям памяти
+    DMux4Way(in=load, sel=address[13..14], a=loadRAM1, b=loadRAM2, c=loadScreen, d=loadKeyboard);  
+    // Объединяем две части RAM
+    Or(a=loadRAM1, b=loadRAM2, out=loadRAM);  
+    // Подключаем модули памяти
+    RAM16K(in=in, load=loadRAM, address=address[0..13], out=ramOutput);
+    Screen(in=in, load=loadScreen, address=address[0..12], out=screenOutput);
+    Keyboard(out=keyboardOutput);   
+    // Выбираем данные из нужной области памяти
+    Mux4Way16(a=ramOutput, b=ramOutput, c=screenOutput, d=keyboardOutput, sel=address[13..14], out=out);
+}
