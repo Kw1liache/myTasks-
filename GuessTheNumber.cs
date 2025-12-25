@@ -12,8 +12,7 @@ namespace GuessTheNumber
             int maxAttempts = 7;
             
             Console.WriteLine("🎮 Добро пожаловать в игру 'Угадай число'");
-            Console.WriteLine($"Я загадал число от 1 до 100. У тебя {maxAttempts} попыток!");
-            
+            Console.WriteLine($"Я загадал число от 1 до 100. У тебя {maxAttempts} попыток!");            
             while (attempts < maxAttempts)
             {
                 attempts++;
