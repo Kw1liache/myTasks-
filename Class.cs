@@ -11,7 +11,6 @@ public class Student
 
 public class Program
 {
-	//мы можем создать массив из Student, потому что Student — это такой же тип, как string или int
 	static Student[] students;
 
 	//Этот тип можно использовать в аргументах метода. 
